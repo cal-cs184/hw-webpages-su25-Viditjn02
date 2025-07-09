@@ -1,112 +1,184 @@
-<html>
-	<head>
-		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=default'></script>
-		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-		<style>
-			h1 {
-				text-align: center;
-			}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>
+  body {
+    background-color: white;
+    padding: 100px;
+    width: 1000px;
+    margin: auto;
+    text-align: left;
+    font-weight: 300;
+    font-family: 'Open Sans', sans-serif;
+    color: #121212;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Source Sans Pro', sans-serif;
+  }
+  kbd {
+    color: #121212;
+  }
+</style>
+<title>CS 184 Rasterizer</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+</head>
 
-			.container {
-				margin: 0 auto;
-				padding: 60px 20%;
-			}
+<body>
 
-			figure {
-				text-align: center;
-			}
+<h1 align="middle">CS 184: Computer Graphics and Imaging, Summer 2025</h1>
+<h1 align="middle">Project 1: Rasterizer</h1>
+<h2 align="middle">Vidit Jain</h2>
 
-			img {
-				display: inline-block;
-			}
+<br><br>
 
-			body {
-				font-family: 'Inter', sans-serif;
-			}
-		</style>
-	</head>
-	<body>
-		<div class="container">
-		<h1>CS184/284A Spring 2025 Homework 1 Write-Up</h1>
-		<div style="text-align: center;">Names: </div>
+<div>
 
-		<br>
+<h2 align="middle">Overview</h2>
+<p>
+    In this project, I implemented a comprehensive rasterizer that can render SVG files with various advanced features. The rasterizer includes triangle rasterization with supersampling for antialiasing, hierarchical transformations, barycentric coordinate interpolation for color gradients, and sophisticated texture mapping with both pixel-level and mipmap-level sampling techniques. This project demonstrates the fundamental concepts of computer graphics rasterization pipeline, from basic triangle drawing to advanced antialiasing and texture filtering methods.
+</p>
+<br>
 
-		Link to webpage: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
-		
-		<br>
+<h2 align="middle">Section I: Rasterization</h2>
 
-		Link to GitHub repository: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
+<h3 align="middle">Part 1: Rasterizing single-color triangles</h3>
 
-		<figure>
-			<img src="lion.jpg" alt="Lion" style="width:50%"/>
-			<figcaption>You can add images with captions!</figcaption>
-		</figure>
+<p>
+    My triangle rasterization algorithm uses the three-line test method discussed in class. For each pixel in the triangle's bounding box, I calculate whether the sample point (at pixel center + 0.5, 0.5) lies inside the triangle by evaluating the line equations for all three edges.
+</p>
 
-		<!--
-		We've already added one heading per task, to make your write-up as navigable when grading. Please fit your write-up within these sections!
-		-->
+<p>
+    The algorithm works by:
+    <ol>
+        <li>Computing the bounding box of the triangle to limit the search space</li>
+        <li>For each pixel center in the bounding box, testing if it's inside the triangle using the three-line test</li>
+        <li>Handling edge cases to ensure consistent behavior regardless of triangle winding order</li>
+        <li>Filling pixels that pass the inside test with the specified color</li>
+    </ol>
+</p>
 
-		<h2>Overview</h2>
-		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the homework.
+<div align="middle">
+  <table style="width:100%">
+    <tr align="center">
+      <td>
+        <img src="images/test_task1_test4.png" align="middle" width="400px"/>
+        <figcaption>basic/test4.svg rendered with default parameters</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
 
-		<h2>Task 1: Drawing Single-Color Triangles</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+<h3 align="middle">Part 2: Antialiasing triangles</h3>
+<p>
+    Supersampling is a technique to reduce aliasing artifacts (jaggies) in rendered images by sampling multiple points per pixel and averaging the results. This creates smoother edges and better visual quality.
+</p>
 
-		<p>Here is an example 2x2 gridlike structure using an HTML table. Each <b>tr</b> is a row and each <b>td</b> is a column in that row. You might find this useful for framing and showing your result images in an organized fashion.</p>
-		<div style="display: flex; flex-direction: column; align-items: center;">
-			<table style="width: 100%; text-align: center; border-collapse: collapse;">
-			  <tr>
-				<td style="text-align: center;">
-				  <img src="lion.jpg" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-				<td style="text-align: center;">
-				  <img src="lion.jpg" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-			  </tr>
-			  <tr>
-				<td style="text-align: center;">
-				  <img src="lion.jpg" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-				<td style="text-align: center;">
-				  <img src="lion.jpg" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-			  </tr>
-			</table>
-		</div>
-		
-		<h2>Task 2: Antialiasing by Supersampling</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+<div align="middle">
+  <table style="width:100%">
+    <tr align="center">
+      <td>
+        <img src="images/test_task2_test4_rate1.png" align="middle" width="300px"/>
+        <figcaption>Sample rate 1 (no supersampling)</figcaption>
+      </td>
+      <td>
+        <img src="images/test_task2_test4_rate4.png" align="middle" width="300px"/>
+        <figcaption>Sample rate 4</figcaption>
+      </td>
+      <td>
+        <img src="images/test_task2_test4_rate16.png" align="middle" width="300px"/>
+        <figcaption>Sample rate 16</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
 
-		<h2>Task 3: Transforms</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+<h3 align="middle">Part 3: Transforms</h3>
 
-		<h2>Task 4: Barycentric coordinates</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+<div align="middle">
+  <table style="width:100%">
+    <tr align="center">
+      <td>
+        <img src="images/test_task3_robot.png" align="middle" width="400px"/>
+        <figcaption>Modified robot with waving gesture</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
 
-		<h2>Task 5: "Pixel sampling" for texture mapping</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+<h2 align="middle">Section II: Sampling</h2>
 
-		<h2>Task 6: "Level Sampling" with mipmaps for texture mapping</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+<h3 align="middle">Part 4: Barycentric coordinates</h3>
 
-		<h2>(Optional) Task 7: Extra Credit - Draw Something Creative!</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+<div align="middle">
+  <table style="width:100%">
+    <tr align="center">
+      <td>
+        <img src="images/test_task4_test7.png" align="middle" width="400px"/>
+        <figcaption>Color gradient using barycentric interpolation</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
 
-		<h2>Additional Notes (please remove)</h2>
-		<ul>
-			<li>You can also add code if you'd like as so: <code>code code code</code></li>
-			<li>If you'd like to add math equations, 
-				<ul>
-					<li>You can write inline equations like so: \( a^2 + b^2 = c^2 \)</li>
-					<li>You can write display equations like so: \[ a^2 + b^2 = c^2 \]</li>
-				</ul>
-			</li>
-		</ul>
-		</div>
-	</body>
+<h3 align="middle">Part 5: "Pixel sampling" for texture mapping</h3>
+
+<div align="middle">
+  <table style="width:100%">
+    <tr align="center">
+      <td>
+        <img src="images/test_task5_test1_nearest.png" align="middle" width="400px"/>
+        <figcaption>Nearest sampling at 1 sample per pixel</figcaption>
+      </td>
+      <td>
+        <img src="images/test_task5_test1_bilinear.png" align="middle" width="400px"/>
+        <figcaption>Bilinear sampling at 1 sample per pixel</figcaption>
+      </td>
+    </tr>
+    <tr align="center">
+      <td>
+        <img src="images/test_task5_test2_nearest.png" align="middle" width="400px"/>
+        <figcaption>Nearest sampling at 16 samples per pixel</figcaption>
+      </td>
+      <td>
+        <img src="images/test_task5_test2_bilinear.png" align="middle" width="400px"/>
+        <figcaption>Bilinear sampling at 16 samples per pixel</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<h3 align="middle">Part 6: "Level sampling" with mipmaps for texture mapping</h3>
+
+<div align="middle">
+  <table style="width:100%">
+    <tr align="center">
+      <td>
+        <img src="images/task6_L_ZERO.png" align="middle" width="400px"/>
+        <figcaption>L_ZERO with P_NEAREST</figcaption>
+      </td>
+      <td>
+        <img src="images/task6_L_NEAREST.png" align="middle" width="400px"/>
+        <figcaption>L_NEAREST with P_NEAREST</figcaption>
+      </td>
+    </tr>
+    <tr align="center">
+      <td>
+        <img src="images/task6_L_LINEAR.png" align="middle" width="400px"/>
+        <figcaption>L_LINEAR with P_LINEAR (trilinear)</figcaption>
+      </td>
+      <td>
+        <img src="images/task6_L_NEAREST.png" align="middle" width="400px"/>
+        <figcaption">L_NEAREST with P_LINEAR</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+</div>
+
+<br>
+<p><em>Website URL: https://cal-cs184.github.io/hw-webpages-su25-Viditjn02/hw1/</em></p>
+
+</body>
 </html>
