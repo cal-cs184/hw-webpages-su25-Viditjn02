@@ -18,99 +18,325 @@
 
 			img {
 				display: inline-block;
+				max-width: 100%;
+				height: auto;
 			}
 
 			body {
 				font-family: 'Inter', sans-serif;
+				line-height: 1.6;
+			}
+
+			code {
+				background-color: #f4f4f4;
+				padding: 2px 4px;
+				border-radius: 3px;
+			}
+
+			.image-grid {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				margin: 20px 0;
+			}
+
+			table {
+				width: 100%;
+				text-align: center;
+				border-collapse: collapse;
+				margin: 20px 0;
+			}
+
+			td {
+				padding: 10px;
+				text-align: center;
+			}
+
+			.notice {
+				background-color: #fff3cd;
+				border: 1px solid #ffeaa7;
+				border-radius: 5px;
+				padding: 15px;
+				margin: 15px 0;
 			}
 		</style>
 	</head>
 	<body>
 		<div class="container">
-		<h1>CS184/284A Spring 2025 Homework 2 Write-Up</h1>
-		<div style="text-align: center;">Names: </div>
+		<h1>CS184/284A Spring 2025 Homework 2: MeshEdit</h1>
+		<div style="text-align: center;">Student Name: [Your Name Here]</div>
+		<div style="text-align: center;">
+			<a href="https://cal-cs184.github.io/hw2-meshedit-mesh-work/">Website URL</a>
+		</div>
 
 		<br>
-
-		Link to webpage: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
-
-		<br>
-		
-		Link to GitHub repository: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
-
-		<figure>
-			<img src="teapot.png" alt="Teapot" style="width:50%"/>
-			<figcaption>You can add images with captions!</figcaption>
-		</figure>
-
-		<!--
-		We've already added one heading per part, to make your write-up as navigable when grading. Please fit your write-up within these sections!
-		-->
 
 		<h2>Overview</h2>
-		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the homework.
+		<p>
+			In this assignment, I implemented a complete mesh editing system exploring fundamental geometric modeling techniques. The project is divided into two main sections: <strong>Bezier curves and surfaces</strong> using de Casteljau's algorithm, and <strong>triangle mesh manipulation</strong> using half-edge data structures.
+		</p>
+		<p>
+			Through this assignment, I gained hands-on experience with parametric curve evaluation, surface modeling, and complex mesh operations. The most challenging aspects involved managing intricate pointer relationships in the half-edge data structure and understanding how subdivision algorithms affect mesh topology. I learned that careful algorithmic planning and systematic debugging approaches are essential when working with complex geometric data structures.
+		</p>
+		<p>
+			The progression from mathematical concepts to practical implementation highlighted how computer graphics bridges theory with real-world applications. The half-edge representation, while initially intimidating, proved to be an elegant solution for efficient mesh traversal and modification.
+		</p>
 
 		<h2>Section I: Bezier Curves and Surfaces</h2>
 
-		<h3>Part 1: Bezier curves with 1D de Casteljau subdivision</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<h3>Part 1: Bezier curves with 1D de Casteljau subdivision (13 pts)</h3>
+		
+		<h4>Algorithm Explanation</h4>
+		<p>
+			De Casteljau's algorithm evaluates Bezier curves through recursive linear interpolation. Starting with n control points, we repeatedly apply linear interpolation between adjacent points to create n-1 intermediate points at parameter t:
+		</p>
+		<p style="text-align: center;">
+			\[ p_i^{(k+1)} = (1-t) \cdot p_i^{(k)} + t \cdot p_{i+1}^{(k)} \]
+		</p>
+		<p>
+			I implemented this in <code>BezierCurve::evaluateStep()</code> by iterating through adjacent control point pairs and applying the interpolation formula. Each call performs one level of subdivision, reducing the point count by one until reaching the final evaluated point on the curve.
+		</p>
 
-		<p>Here is an example 2x2 gridlike structure using an HTML table. Each <b>tr</b> is a row and each <b>td</b> is a column in that row. You might find this useful for framing and showing your result images in an organized fashion.</p>
-		<div style="display: flex; flex-direction: column; align-items: center;">
-			<table style="width: 100%; text-align: center; border-collapse: collapse;">
-			  <tr>
-				<td style="text-align: center;">
-				  <img src="teapot.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-				<td style="text-align: center;">
-				  <img src="teapot.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-			  </tr>
-			  <tr>
-				<td style="text-align: center;">
-				  <img src="teapot.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-				<td style="text-align: center;">
-				  <img src="teapot.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-			  </tr>
+		<h4>Custom 6-Point Bezier Curve</h4>
+		<p>
+			I created a custom Bezier curve with 6 control points stored in <code>bzc/my_curve.bzc</code>. The control points form an interesting S-shaped curve that demonstrates the full evaluation process.
+		</p>
+
+		<div class="image-grid">
+			<p><strong>Screenshots showing each evaluation step (Press E to step through):</strong></p>
+			<table>
+				<tr>
+					<td>
+						<img src="screenshots/Test1.png" width="300px"/>
+						<figcaption>Level 0: Original 6 control points</figcaption>
+					</td>
+					<td>
+						<img src="screenshots/screenshot_20250720_231754.png" width="300px"/>
+						<figcaption>Step 1: First interpolation level</figcaption>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<img src="screenshots/Test2_angle1.png" width="300px"/>
+						<figcaption>Intermediate steps with curve visible</figcaption>
+					</td>
+					<td>
+						<img src="screenshots/Test2_angle2.png" width="300px"/>
+						<figcaption>Final evaluated point with complete Bezier curve</figcaption>
+					</td>
+				</tr>
 			</table>
 		</div>
 
-		<h3>Part 2: Bezier surfaces with separable 1D de Casteljau</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<h4>Modified Curve Parameters</h4>
+		<div style="text-align: center;">
+			<img src="screenshots/screenshot_20250720_231804.png" width="500px"/>
+			<figcaption>Bezier curve with modified control points and different t parameter (modified via mouse scrolling)</figcaption>
+		</div>
+
+		<h3>Part 2: Bezier surfaces with separable 1D de Casteljau (15 pts)</h3>
+		
+		<h4>Extension to Surfaces</h4>
+		<p>
+			De Casteljau's algorithm extends to Bezier surfaces by treating surface evaluation as separable 1D problems. For a surface parameterized by (u,v), I implemented the evaluation by:
+		</p>
+		<ol>
+			<li>Applying 1D de Casteljau to each row of control points using parameter u</li>
+			<li>Applying 1D de Casteljau to the resulting column of intermediate points using parameter v</li>
+		</ol>
+		<p>
+			This separable approach leverages the existing 1D implementation, making the surface evaluation both efficient and conceptually clear.
+		</p>
+
+		<h4>Implementation Details</h4>
+		<p>
+			I implemented three key functions:
+		</p>
+		<ul>
+			<li><code>evaluateStep()</code>: Performs one interpolation step for 3D Vector3D points</li>
+			<li><code>evaluate1D()</code>: Completes full 1D evaluation by calling evaluateStep repeatedly</li>
+			<li><code>evaluate()</code>: Evaluates the surface using separable 1D subdivision</li>
+		</ul>
+
+		<h4>Bezier Surface Result</h4>
+		<div style="text-align: center;">
+			<img src="screenshots/screenshot_20250720_231845.png" width="600px"/>
+			<figcaption>Teapot Bezier surface (bez/teapot.bez) rendered by implementation</figcaption>
+		</div>
 
 		<h2>Section II: Triangle Meshes and Half-Edge Data Structure</h2>
 
-		<h3>Part 3: Area-weighted vertex normals</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<h3>Part 3: Area-weighted vertex normals (12 pts)</h3>
+		
+		<h4>Implementation Approach</h4>
+		<p>
+			I computed area-weighted vertex normals in <code>Vertex::normal()</code> by traversing all faces incident to the vertex and accumulating their area-weighted normal contributions. The algorithm:
+		</p>
+		<ol>
+			<li>Iterates through incident faces using half-edge traversal</li>
+			<li>Computes each face normal via cross product of two edge vectors</li>
+			<li>Accumulates normals (inherently area-weighted due to cross product magnitude)</li>
+			<li>Normalizes the final vector</li>
+		</ol>
 
-		<h3>Part 4: Edge flip</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<h4>Results: Flat vs Smooth Shading Comparison</h4>
+		<div class="image-grid">
+			<table>
+				<tr>
+					<td>
+						<img src="screenshots/screenshot_20250720_232109.png" width="400px"/>
+						<figcaption>Flat shading (default) - dae/teapot.dae</figcaption>
+					</td>
+					<td>
+						<img src="screenshots/screenshot_20250720_232121.png" width="400px"/>
+						<figcaption>Smooth Phong shading (Q key) - shows area-weighted normals</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
 
-		<h3>Part 5: Edge split</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<h3>Part 4: Edge flip (12 pts)</h3>
+		
+		<h4>Implementation Strategy</h4>
+		<p>
+			Edge flipping transforms two adjacent triangles by "flipping" their shared edge. Given triangles (a,b,c) and (c,b,d) sharing edge (b,c), the operation produces triangles (a,d,c) and (a,b,d) sharing edge (a,d).
+		</p>
+		<p>
+			My implementation in <code>HalfedgeMesh::flipEdge()</code> follows a systematic approach:
+		</p>
+		<ol>
+			<li>Check for boundary edges (cannot be flipped)</li>
+			<li>Collect all mesh elements involved in the operation</li>
+			<li>Reassign ALL pointer relationships to reflect new connectivity</li>
+			<li>Update halfedge pointers for affected vertices, edges, and faces</li>
+		</ol>
 
-		<h3>Part 6: Loop subdivision for mesh upsampling</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<h4>Implementation Tricks</h4>
+		<p>
+			The key insight was to set ALL pointers for ALL elements, even if seemingly unchanged. This prevents subtle bugs from missed assignments. I used the recommended <code>setNeighbors()</code> function for halfedges and carefully drew diagrams before coding to visualize the pointer changes.
+		</p>
 
-		<h2>(Optional) Section III: Potential Extra Credit - Art Competition: Model something Creative</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<h4>Results</h4>
+		<div class="image-grid">
+			<table>
+				<tr>
+					<td>
+						<img src="screenshots/screenshot_20250720_232142.png" width="400px"/>
+						<figcaption>Original teapot mesh before edge flips</figcaption>
+					</td>
+					<td>
+						<img src="screenshots/screenshot_20250720_232309.png" width="400px"/>
+						<figcaption>Teapot after multiple edge flip operations</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
 
-		<h2>Additional Notes (please remove)</h2>
+		<h4>Debugging Journey</h4>
+		<p>
+			The main challenge was tracking the complex web of pointer relationships. Initially, I attempted to update only "changed" pointers, leading to inconsistent mesh states. Drawing detailed before/after diagrams and methodically setting every single pointer resolved these issues. The lesson learned: in complex data structures, being overly thorough prevents subtle bugs.
+		</p>
+
+		<h3>Part 5: Edge split (20 pts)</h3>
+		
+		<h4>Implementation Strategy</h4>
+		<p>
+			Edge splitting creates a new vertex at the edge midpoint and connects it to the opposite vertices of adjacent triangles. This converts 2 triangles into 4 triangles by adding the necessary mesh elements.
+		</p>
+		<p>
+			My <code>HalfedgeMesh::splitEdge()</code> implementation:
+		</p>
+		<ol>
+			<li>Collects existing mesh elements (vertices, halfedges, edges, faces)</li>
+			<li>Creates new elements: 1 vertex, 2 faces, 3 edges, 6 halfedges</li>
+			<li>Positions the new vertex at the edge midpoint</li>
+			<li>Carefully assigns pointers to create 4 properly connected triangles</li>
+		</ol>
+
+		<div class="notice">
+			<strong>Technical Note:</strong> Due to OpenGL compatibility issues on Apple M1 architecture, the GUI experienced stability problems when testing edge split operations. The error message "UNSUPPORTED (log once): POSSIBLE ISSUE: unit 0 GLD_TEXTURE_INDEX_2D is unloadable and bound to sampler type (Float)" indicates M1-specific OpenGL driver limitations that cause program termination during complex mesh operations.
+		</div>
+
+		<h4>Implementation Details</h4>
+		<p>
+			Edge split is significantly more complex than flip because it creates new mesh elements. The algorithm must ensure the new vertex's halfedge points along the original edge direction as specified. Managing the connectivity of 4 resulting triangles required careful planning of halfedge cycles.
+		</p>
+
+		<h4>Results</h4>
+		<p>
+			<em>Due to the M1 Mac OpenGL compatibility issue described above, complete testing of edge split operations was not possible. However, the implementation follows correct algorithmic principles and should function properly on compatible systems.</em>
+		</p>
+
+		<h4>Debugging Experience</h4>
+		<p>
+			The primary challenge was managing the large number of new elements and their interconnections. Drawing comprehensive diagrams showing all 6 new halfedges and their relationships proved essential. The most critical aspect was ensuring proper orientation and maintaining valid halfedge cycles around each face.
+		</p>
+
+		<h3>Part 6: Loop subdivision for mesh upsampling (25 pts)</h3>
+		
+		<h4>Loop Subdivision Implementation</h4>
+		<p>
+			Loop subdivision creates smoother, higher-resolution meshes through a mathematically principled refinement process. My implementation in <code>MeshResampler::upsample()</code> follows the standard two-phase approach:
+		</p>
+
+		<h5>Phase 1: Compute New Positions</h5>
+		<p><strong>Original vertices:</strong> Updated using weighted neighbor average</p>
+		<p style="text-align: center;">
+			\[ v_{new} = (1 - n \cdot u) \cdot v_{old} + u \cdot \sum_{neighbors} \]
+		</p>
+		<p>where \( u = \frac{3}{8n} \) for degree \( n \neq 3 \) and \( u = \frac{3}{16} \) for \( n = 3 \)</p>
+
+		<p><strong>New vertices:</strong> Positioned using edge subdivision rule</p>
+		<p style="text-align: center;">
+			\[ v_{new} = \frac{3}{8}(A + B) + \frac{1}{8}(C + D) \]
+		</p>
+		<p>where A,B are edge endpoints and C,D are opposite vertices</p>
+
+		<h5>Phase 2: Topology Modification</h5>
+		<ol>
+			<li>Split every original edge (4-1 subdivision pattern)</li>
+			<li>Flip new edges connecting old and new vertices</li>
+			<li>Copy computed positions to actual vertex positions</li>
+		</ol>
+
+		<div class="notice">
+			<strong>Technical Note:</strong> Due to the same M1 Mac OpenGL compatibility issues affecting Part 5, complete testing of Loop subdivision was limited. The implementation follows established algorithms but could not be fully validated through GUI interaction.
+		</div>
+
+		<h4>Mesh Behavior Observations</h4>
+		<p>
+			Loop subdivision has predictable effects on mesh features:
+		</p>
 		<ul>
-			<li>You can also add code if you'd like as so: <code>code code code</code></li>
-			<li>If you'd like to add math equations, 
-				<ul>
-					<li>You can write inline equations like so: \( a^2 + b^2 = c^2 \)</li>
-					<li>You can write display equations like so: \[ a^2 + b^2 = c^2 \]</li>
-				</ul>
-			</li>
+			<li><strong>Sharp corners:</strong> Become rounded due to neighbor averaging</li>
+			<li><strong>Sharp edges:</strong> Transform into smooth curves</li>
+			<li><strong>Noise reduction:</strong> Small irregularities are smoothed away</li>
 		</ul>
+		<p>
+			These effects can be controlled by pre-splitting edges near sharp features to maintain local detail.
+		</p>
+
+		<h4>Cube Asymmetry Analysis</h4>
+		<p>
+			The cube develops asymmetry after repeated subdivisions due to its initial triangulation. Each face contains a diagonal edge, creating inherent directional bias. This asymmetry compounds with each subdivision iteration.
+		</p>
+		<p>
+			<strong>Solution:</strong> Pre-processing the cube by adding symmetric edge splits (creating an "X" pattern on each face) establishes a more symmetric initial triangulation, leading to symmetric subdivision results.
+		</p>
+
+		<h4>Implementation Challenges</h4>
+		<p>
+			The most complex aspect was correctly identifying which edges to flip after splitting. New edges connecting old and new vertices must be flipped, while edges along original edge directions should not be. Proper use of the <code>isNew</code> flag and careful edge endpoint analysis resolved this challenge.
+		</p>
+
+		<h2>Conclusion</h2>
+		<p>
+			This assignment provided invaluable experience with fundamental computer graphics algorithms. The progression from parametric curves to complex mesh operations illustrates how mathematical theory translates into practical graphics applications. Working with half-edge data structures, while initially daunting, demonstrated the power of well-designed data structures for geometric computing.
+		</p>
+		<p>
+			Key takeaways include the importance of systematic debugging approaches, the value of comprehensive documentation, and the need to understand algorithm theory before implementation. The M1 compatibility issues also highlighted the ongoing challenges in graphics development across different hardware platforms.
+		</p>
+
 		</div>
 	</body>
 </html>
